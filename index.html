@@ -23,9 +23,11 @@ button {
   border:none;
   border-radius:10px;
   margin-top:10px;
+  font-size:16px;
 }
 
-.wp { background:#25D366; color:white; }
+.ig { background:#E1306C; color:white; }
+.copy { background:#333; color:white; }
 
 input, select { width:90%; padding:10px; margin-top:10px; }
 </style>
@@ -36,154 +38,73 @@ input, select { width:90%; padding:10px; margin-top:10px; }
 <div class="container">
 
 <h1>🎨 Purika Art</h1>
+<p>Kişiye özel string art tasarım</p>
 
 <div class="card">
-<h3>📸 Fotoğraf Seç</h3>
+<h3>📸 Fotoğraf Yükle</h3>
 <input type="file" id="file">
 </div>
 
 <div class="card">
-<h3>🧵 Önizleme</h3>
-<canvas id="canvas" width="300" height="300"></canvas>
-<p style="font-size:12px;color:gray;">Bu önizleme temsilidir</p>
+<h3>📸 Fotoğraf Kuralları</h3>
+<p>✔️ Yüz net ve ortada olmalı</p>
+<p>✔️ Arka plan sade olmalı</p>
+<p>✔️ Işık iyi olmalı</p>
+<p>✔️ Tek kişi önerilir</p>
 </div>
 
 <div class="card">
-<h3>📏 Boyut</h3>
+<h3>📏 Boyut Seç</h3>
 <select id="size">
-  <option>20x20 - 250₺</option>
-  <option>30x30 - 300₺</option>
+  <option>20x20 - 399₺</option>
+  <option>30x30 - 499₺</option>
+  <option>40x40 - 599₺</option>
 </select>
 </div>
 
 <div class="card">
+<h3>📦 Bilgiler</h3>
 <input id="name" placeholder="Adınız">
 <input id="city" placeholder="Şehir">
 </div>
 
-<button class="wp" onclick="order()">WhatsApp Sipariş</button>
+<div class="card">
+<h3>📋 Sipariş Mesajı</h3>
+<textarea id="message" rows="5" style="width:90%;"></textarea>
+</div>
+
+<button class="copy" onclick="createMessage()">Mesajı Hazırla</button>
+<button class="copy" onclick="copyText()">Kopyala</button>
+<button class="ig" onclick="goInstagram()">Instagram’a Git</button>
 
 </div>
 
 <script>
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
-
-const size = 300;
-const NAILS = 80;
-const LINES = 300;
-
-let nails = [];
-let imageData;
-
-function createNails() {
-  nails = [];
-  for (let i = 0; i < NAILS; i++) {
-    let angle = (i / NAILS) * Math.PI * 2;
-    nails.push({
-      x: size/2 + (size/2 - 10) * Math.cos(angle),
-      y: size/2 + (size/2 - 10) * Math.sin(angle)
-    });
-  }
-}
-
-function loadImage(src) {
-  return new Promise(resolve => {
-    let img = new Image();
-    img.src = src;
-    img.onload = () => {
-      ctx.drawImage(img, 0, 0, size, size);
-
-      let imgData = ctx.getImageData(0,0,size,size);
-      let data = imgData.data;
-
-      for (let i=0; i<data.length; i+=4) {
-        let avg = (data[i]+data[i+1]+data[i+2])/3;
-        data[i]=data[i+1]=data[i+2]=avg;
-      }
-
-      ctx.putImageData(imgData,0,0);
-      imageData = ctx.getImageData(0,0,size,size);
-
-      resolve();
-    }
-  });
-}
-
-function getLineScore(a, b) {
-  let score = 0;
-  let steps = 30;
-
-  for (let i=0; i<steps; i++) {
-    let t = i/steps;
-    let x = Math.floor(a.x*(1-t) + b.x*t);
-    let y = Math.floor(a.y*(1-t) + b.y*t);
-
-    let idx = (y*size + x)*4;
-    score += imageData.data[idx];
-  }
-
-  return score;
-}
-
-function drawLine(a, b) {
-  ctx.beginPath();
-  ctx.moveTo(a.x, a.y);
-  ctx.lineTo(b.x, b.y);
-  ctx.strokeStyle = "black";
-  ctx.globalAlpha = 0.1;
-  ctx.stroke();
-  ctx.globalAlpha = 1;
-}
-
-async function generate(src) {
-  await loadImage(src);
-  createNails();
-
-  ctx.clearRect(0,0,size,size);
-
-  let current = 0;
-
-  for (let i=0; i<LINES; i++) {
-
-    let best = 0;
-    let bestScore = -Infinity;
-
-    for (let j=0; j<NAILS; j++) {
-      if (j === current) continue;
-
-      let score = getLineScore(nails[current], nails[j]);
-
-      if (score > bestScore) {
-        bestScore = score;
-        best = j;
-      }
-    }
-
-    drawLine(nails[current], nails[best]);
-    current = best;
-  }
-}
-
-document.getElementById("file").onchange = function() {
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    generate(e.target.result);
-  }
-  reader.readAsDataURL(this.files[0]);
-}
-
-function order() {
+function createMessage() {
   let name = document.getElementById("name").value;
   let city = document.getElementById("city").value;
   let size = document.getElementById("size").value;
 
-  let msg = `Merhaba sipariş vermek istiyorum:
+  let text = `Merhaba, sipariş vermek istiyorum:
+
 İsim: ${name}
 Şehir: ${city}
-Boyut: ${size}`;
+Boyut: ${size}
 
-  window.location.href = "https://wa.me/905000000000?text=" + encodeURIComponent(msg);
+Fotoğrafımı ekliyorum.`;
+
+  document.getElementById("message").value = text;
+}
+
+function copyText() {
+  let text = document.getElementById("message");
+  text.select();
+  document.execCommand("copy");
+  alert("Mesaj kopyalandı!");
+}
+
+function goInstagram() {
+  window.location.href = "https://ig.me/m/purika.art";
 }
 </script>
 
